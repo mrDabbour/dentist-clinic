@@ -16,10 +16,6 @@ public class UpdateAppointmentDto
     [Required]
     public DateTime StartTime { get; set; }
 
-    [Required]
-    [MaxLength(30)]
-    public string Status { get; set; } = string.Empty;
-
     [MaxLength(1000)]
     public string? Notes { get; set; }
 }

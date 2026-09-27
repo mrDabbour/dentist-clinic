@@ -320,162 +320,144 @@ public async Task<ActionResult<IEnumerable<AppointmentResponseDto>>> GetAppointm
             response);
     }
 
-    // =========================================================
-    // PUT: api/appointments/5
-    // =========================================================
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<AppointmentResponseDto>> UpdateAppointment(
-        int id,
-        UpdateAppointmentDto dto)
+
+// =========================================================
+// PUT: api/appointments/5
+// =========================================================
+
+[HttpPut("{id:int}")]
+public async Task<ActionResult<AppointmentResponseDto>> UpdateAppointment(
+    int id,
+    UpdateAppointmentDto dto)
+{
+    var appointment = await _context.Appointments
+        .FindAsync(id);
+
+    if (appointment == null)
     {
-        var appointment = await _context.Appointments
-            .FindAsync(id);
-
-        if (appointment == null)
+        return NotFound(new
         {
-            return NotFound(new
-            {
-                message = $"Appointment with ID {id} was not found."
-            });
-        }
-
-        // Validate status
-        var normalizedStatus = AllowedStatuses.FirstOrDefault(
-            status =>
-                status.Equals(
-                    dto.Status.Trim(),
-                    StringComparison.OrdinalIgnoreCase));
-
-        if (normalizedStatus == null)
-        {
-            return BadRequest(new
-            {
-                message =
-                    "Status must be Pending, Confirmed, Completed, Cancelled or NoShow."
-            });
-        }
-
-        // Validate patient
-        var patient = await _context.Patients
-            .FindAsync(dto.PatientId);
-
-        if (patient == null)
-        {
-            return BadRequest(new
-            {
-                message = "The selected patient does not exist."
-            });
-        }
-
-        // Validate dentist
-        var dentist = await _context.Dentists
-            .FindAsync(dto.DentistId);
-
-        if (dentist == null)
-        {
-            return BadRequest(new
-            {
-                message = "The selected dentist does not exist."
-            });
-        }
-
-        if (!dentist.IsActive)
-        {
-            return BadRequest(new
-            {
-                message = "The selected dentist is not currently active."
-            });
-        }
-
-        // Validate service
-        var service = await _context.DentalServices
-            .FindAsync(dto.DentalServiceId);
-
-        if (service == null)
-        {
-            return BadRequest(new
-            {
-                message = "The selected dental service does not exist."
-            });
-        }
-
-        if (!service.IsActive)
-        {
-            return BadRequest(new
-            {
-                message = "The selected dental service is not currently active."
-            });
-        }
-
-        var endTime =
-            dto.StartTime.AddMinutes(service.DurationMinutes);
-
-        // Cancelled appointments don't need availability checks.
-        if (normalizedStatus != "Cancelled")
-        {
-            var dentistHasConflict = await _context.Appointments
-                .AnyAsync(a =>
-                    a.Id != id &&
-                    a.DentistId == dto.DentistId &&
-                    a.Status != "Cancelled" &&
-                    a.StartTime < endTime &&
-                    a.EndTime > dto.StartTime);
-
-            if (dentistHasConflict)
-            {
-                return Conflict(new
-                {
-                    message =
-                        "The dentist already has another appointment during this time."
-                });
-            }
-
-            var patientHasConflict = await _context.Appointments
-                .AnyAsync(a =>
-                    a.Id != id &&
-                    a.PatientId == dto.PatientId &&
-                    a.Status != "Cancelled" &&
-                    a.StartTime < endTime &&
-                    a.EndTime > dto.StartTime);
-
-            if (patientHasConflict)
-            {
-                return Conflict(new
-                {
-                    message =
-                        "The patient already has another appointment during this time."
-                });
-            }
-        }
-
-        appointment.PatientId = patient.Id;
-        appointment.DentistId = dentist.Id;
-        appointment.DentalServiceId = service.Id;
-
-        appointment.StartTime = dto.StartTime;
-        appointment.EndTime = endTime;
-
-        appointment.Status = normalizedStatus;
-
-        appointment.Notes =
-            string.IsNullOrWhiteSpace(dto.Notes)
-                ? null
-                : dto.Notes.Trim();
-
-        appointment.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        var response = MapAppointment(
-            appointment,
-            patient,
-            dentist,
-            service);
-
-        return Ok(response);
+            message = $"Appointment with ID {id} was not found."
+        });
     }
 
+    // Validate patient
+    var patient = await _context.Patients
+        .FindAsync(dto.PatientId);
 
+    if (patient == null)
+    {
+        return BadRequest(new
+        {
+            message = "The selected patient does not exist."
+        });
+    }
+
+    // Validate dentist
+    var dentist = await _context.Dentists
+        .FindAsync(dto.DentistId);
+
+    if (dentist == null)
+    {
+        return BadRequest(new
+        {
+            message = "The selected dentist does not exist."
+        });
+    }
+
+    if (!dentist.IsActive)
+    {
+        return BadRequest(new
+        {
+            message = "The selected dentist is not currently active."
+        });
+    }
+
+    // Validate service
+    var service = await _context.DentalServices
+        .FindAsync(dto.DentalServiceId);
+
+    if (service == null)
+    {
+        return BadRequest(new
+        {
+            message = "The selected dental service does not exist."
+        });
+    }
+
+    if (!service.IsActive)
+    {
+        return BadRequest(new
+        {
+            message = "The selected dental service is not currently active."
+        });
+    }
+
+    var endTime =
+        dto.StartTime.AddMinutes(service.DurationMinutes);
+
+    // Cancelled appointments don't need availability checks.
+    if (appointment.Status != "Cancelled")
+    {
+        var dentistHasConflict = await _context.Appointments
+            .AnyAsync(a =>
+                a.Id != id &&
+                a.DentistId == dto.DentistId &&
+                a.Status != "Cancelled" &&
+                a.StartTime < endTime &&
+                a.EndTime > dto.StartTime);
+
+        if (dentistHasConflict)
+        {
+            return Conflict(new
+            {
+                message =
+                    "The dentist already has another appointment during this time."
+            });
+        }
+
+        var patientHasConflict = await _context.Appointments
+            .AnyAsync(a =>
+                a.Id != id &&
+                a.PatientId == dto.PatientId &&
+                a.Status != "Cancelled" &&
+                a.StartTime < endTime &&
+                a.EndTime > dto.StartTime);
+
+        if (patientHasConflict)
+        {
+            return Conflict(new
+            {
+                message =
+                    "The patient already has another appointment during this time."
+            });
+        }
+    }
+
+    appointment.PatientId = patient.Id;
+    appointment.DentistId = dentist.Id;
+    appointment.DentalServiceId = service.Id;
+
+    appointment.StartTime = dto.StartTime;
+    appointment.EndTime = endTime;
+
+    appointment.Notes =
+        string.IsNullOrWhiteSpace(dto.Notes)
+            ? null
+            : dto.Notes.Trim();
+
+    appointment.UpdatedAt = DateTime.UtcNow;
+
+    await _context.SaveChangesAsync();
+
+    var response = MapAppointment(
+        appointment,
+        patient,
+        dentist,
+        service);
+
+    return Ok(response);
+}
 
 
 // =========================================================
