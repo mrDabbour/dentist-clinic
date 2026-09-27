@@ -1,0 +1,125 @@
+@baseUrl = http://localhost:5056
+
+
+### ==========================================
+### 1. GET all dentists
+### Expected: 200 OK
+### ==========================================
+
+GET {{baseUrl}}/api/dentists
+Accept: application/json
+
+
+### ==========================================
+### 2. CREATE dentist
+### Expected: 201 Created
+### ==========================================
+
+POST {{baseUrl}}/api/dentists
+Content-Type: application/json
+
+{
+  "firstName": "Sarah",
+  "lastName": "Wilson",
+  "email": "sarah.wilson@dentistclinic.co.nz",
+  "phone": "0215551234",
+  "registrationNumber": "DEN-1001",
+  "specialty": "General Dentistry",
+  "biography": "General dentist providing preventive and restorative dental care."
+}
+
+
+### ==========================================
+### 3. GET dentist by ID
+### Expected: 200 OK
+### Change 1 if your created dentist has another ID
+### ==========================================
+
+GET {{baseUrl}}/api/dentists/1
+Accept: application/json
+
+
+### ==========================================
+### 4. INVALID create
+### Expected: 400 Bad Request
+### ==========================================
+
+POST {{baseUrl}}/api/dentists
+Content-Type: application/json
+
+{
+  "firstName": "Mohammed",
+  "lastName": "Smith",
+  "email": "bad-email",
+  "phone": "0215559999",
+  "registrationNumber": "",
+  "specialty": "",
+  "biography": "Invalid test dentist."
+}
+
+
+### ==========================================
+### 5. DUPLICATE dentist
+### Expected: 409 Conflict
+### Uses same email/registration number as Sarah
+### ==========================================
+
+POST {{baseUrl}}/api/dentists
+Content-Type: application/json
+
+{
+  "firstName": "Another",
+  "lastName": "Dentist",
+  "email": "sarah.wilson@dentistclinic.co.nz",
+  "phone": "0211111111",
+  "registrationNumber": "DEN-1001",
+  "specialty": "Orthodontics",
+  "biography": "Duplicate test."
+}
+
+
+### ==========================================
+### 6. UPDATE dentist
+### Expected: 200 OK
+### ==========================================
+
+PUT {{baseUrl}}/api/dentists/1
+Content-Type: application/json
+
+{
+  "firstName": "Mohammed",
+  "lastName": "Wilson",
+  "email": "sarah.wilson@dentistclinic.co.nz",
+  "phone": "0225550199",
+  "registrationNumber": "DEN-1001",
+  "specialty": "Cosmetic Dentistry",
+  "biography": "Dentist providing general and cosmetic dental care.",
+  "isActive": true
+}
+
+
+### ==========================================
+### 7. GET updated dentist
+### Expected: 200 OK
+### Verify specialty/phone/biography changed
+### ==========================================
+
+GET {{baseUrl}}/api/dentists/1
+Accept: application/json
+
+
+### ==========================================
+### 8. GET non-existent dentist
+### Expected: 404 Not Found
+### ==========================================
+
+GET {{baseUrl}}/api/dentists/999
+Accept: application/json
+
+
+### ==========================================
+### 9. DELETE non-existent dentist
+### Expected: 404 Not Found
+### ==========================================
+
+DELETE {{baseUrl}}/api/dentists/1
