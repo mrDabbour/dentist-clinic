@@ -6,9 +6,11 @@ using System.Text;
 using dentist_clinic_api.Data;
 using dentist_clinic_api.Middleware;
 using Scalar.AspNetCore;
+using dentist_clinic_api.Services;
+using dentist_clinic_api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 // =========================================================
 // Database
