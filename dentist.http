@@ -123,3 +123,8 @@ Accept: application/json
 ### ==========================================
 
 DELETE {{baseUrl}}/api/dentists/1
+
+
+
+###GET GOOGLE TOKEN FOR PATIENT-AUTH
+POST http://localhost:5056/api/patient-auth/google

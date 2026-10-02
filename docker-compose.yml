@@ -13,4 +13,17 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: "Host=host.docker.internal;Port=1234;Database=dentist_clinic;Username=postgres;Password=${POSTGRES_PASSWORD}"
       Jwt__Key: "${JWT_KEY}"
+      GoogleAuth__ClientId: "251403800492-nqjgltgrsdgasvikcfd0dfbf3bd6sr3h.apps.googleusercontent.com"
+      Billing__GstPriceMode: "${BILLING_GST_PRICE_MODE:-Inclusive}"
+      Billing__BankAccountName: "${BILLING_BANK_ACCOUNT_NAME:-Mohammed Dabboor}"
+      Billing__BankAccountNumber: "${BILLING_BANK_ACCOUNT_NUMBER:-15-39530983855000}"
+      Billing__GstNumber: "${BILLING_GST_NUMBER:-}"
+      Billing__SupplierName: "${BILLING_SUPPLIER_NAME:-Dintest Clinic}"
+      Billing__SupplierAddress: "${BILLING_SUPPLIER_ADDRESS:-}"
+      Billing__FrontendOrigin: "${BILLING_FRONTEND_ORIGIN:-http://localhost:4200}"
+      PayPal__ClientId: "${PAYPAL_CLIENT_ID:-}"
+      PayPal__ClientSecret: "${PAYPAL_CLIENT_SECRET:-}"
+      PayPal__MerchantId: "${PAYPAL_MERCHANT_ID:-}"
+      PayPal__WebhookId: "${PAYPAL_WEBHOOK_ID:-}"
+      PayPal__Live: "${PAYPAL_LIVE:-false}"
     restart: unless-stopped

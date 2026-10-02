@@ -143,3 +143,6 @@ Secrets and environment files are excluded from Git.
 ## Next Step
 
 Connect the Angular frontend to the ASP.NET Core API and build the complete clinic user experience.
+## Patient Google sign-in
+
+See [Google sign-in setup and API contract](GOOGLE_LOGIN.md).

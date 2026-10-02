@@ -422,6 +422,11 @@ public async Task<IActionResult> ConfirmAppointment(int id)
         });
     }
 
+    _context.PatientNotifications.Add(new PatientNotification
+    {
+        PatientId = appointment.PatientId,
+        AppointmentId = appointment.Id
+    });
     appointment.Status = "Confirmed";
     appointment.UpdatedAt = DateTime.UtcNow;
 

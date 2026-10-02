@@ -18,6 +18,25 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (exception is dentist_clinic_api.Services.BillingException billingException)
+        {
+            httpContext.Response.StatusCode = billingException.StatusCode;
+            await httpContext.Response.WriteAsJsonAsync(new { message = billingException.Message, code = billingException.Code }, cancellationToken);
+            return true;
+        }
+        for (Exception? current = exception; current != null; current = current.InnerException)
+        {
+            if (current is Npgsql.PostgresException { SqlState: "23P01", ConstraintName: "EX_Appointments_DentistTime" or "EX_Appointments_PatientTime" })
+            {
+                httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
+                await httpContext.Response.WriteAsJsonAsync(new
+                {
+                    message = "That time is no longer available. Please choose another time."
+                }, cancellationToken);
+                return true;
+            }
+        }
+
         _logger.LogError(
             exception,
             "Unhandled exception occurred while processing {Method} {Path}",

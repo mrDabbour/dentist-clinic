@@ -196,10 +196,64 @@ public async Task<ActionResult<PatientResponseDto>> UpdatePatient(
         });
     }
 
-    patient.FirstName = dto.FirstName.Trim();
-    patient.LastName = dto.LastName.Trim();
-    patient.Email = dto.Email.Trim().ToLowerInvariant();
-    patient.Phone = dto.Phone.Trim();
+    var firstName = dto.FirstName.Trim();
+    var lastName = dto.LastName.Trim();
+
+    var normalizedEmail =
+        dto.Email.Trim().ToLowerInvariant();
+
+    var normalizedPhone =
+        new string(
+            dto.Phone
+                .Where(char.IsDigit)
+                .ToArray()
+        );
+
+    // Check another patient does not own this email
+    var emailExists =
+        await _context.Patients
+            .AsNoTracking()
+            .AnyAsync(p =>
+                p.Id != id &&
+                p.Email.ToLower() == normalizedEmail
+            );
+
+    if (emailExists)
+    {
+        return Conflict(new
+        {
+            message =
+                "Another patient with this email already exists."
+        });
+    }
+
+    // Check another patient does not own this phone
+    var phoneExists =
+        await _context.Patients
+            .AsNoTracking()
+            .AnyAsync(p =>
+                p.Id != id &&
+                p.Phone != null &&
+                p.Phone.Replace(" ", "")
+                       .Replace("-", "")
+                       .Replace("(", "")
+                       .Replace(")", "") ==
+                normalizedPhone
+            );
+
+    if (phoneExists)
+    {
+        return Conflict(new
+        {
+            message =
+                "Another patient with this phone number already exists."
+        });
+    }
+
+    patient.FirstName = firstName;
+    patient.LastName = lastName;
+    patient.Email = normalizedEmail;
+    patient.Phone = normalizedPhone;
 
     await _context.SaveChangesAsync();
 

@@ -17,10 +17,33 @@ public class DentistDbContext : DbContext
     public DbSet<Patient> Patients { get; set; }
     public DbSet<Dentist> Dentists { get; set; }
     public DbSet<DentalService> DentalServices { get; set; }
-
+   public DbSet<PatientIdentity> PatientIdentities { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<PatientNotification> PatientNotifications { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.Ignore(i => i.Number);
+            entity.HasIndex(i => i.AppointmentId).IsUnique();
+            entity.HasIndex(i => i.PayPalOrderId).IsUnique();
+            entity.HasIndex(i => i.PayPalCaptureId).IsUnique();
+            entity.HasOne<Appointment>().WithMany().HasForeignKey(i => i.AppointmentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Patient>().WithMany().HasForeignKey(i => i.PatientId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(i => i.Subtotal).HasPrecision(10, 2);
+            entity.Property(i => i.GstAmount).HasPrecision(10, 2);
+            entity.Property(i => i.Total).HasPrecision(10, 2);
+            entity.Property(i => i.GstRate).HasPrecision(5, 4);
+            entity.Property(i => i.BankTransferReference).HasMaxLength(100);
+            entity.Property(i => i.VerificationReference).HasMaxLength(200);
+        });
+        modelBuilder.Entity<PatientNotification>(entity =>
+        {
+            entity.HasIndex(n => new { n.AppointmentId, n.Type }).IsUnique();
+            entity.HasOne<Appointment>().WithMany().HasForeignKey(n => n.AppointmentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Patient>().WithMany().HasForeignKey(n => n.PatientId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         // =========================
         // Dentist
@@ -164,6 +187,32 @@ public class DentistDbContext : DbContext
     entity.HasIndex(u => u.Role);
 
     entity.HasIndex(u => u.IsActive);
+});
+
+
+modelBuilder.Entity<PatientIdentity>(entity =>
+{
+    entity.HasKey(x => x.Id);
+
+    entity.Property(x => x.Provider)
+        .IsRequired()
+        .HasMaxLength(50);
+
+    entity.Property(x => x.ProviderSubjectId)
+        .IsRequired()
+        .HasMaxLength(255);
+
+    entity.HasIndex(x => new
+    {
+        x.Provider,
+        x.ProviderSubjectId
+    })
+    .IsUnique();
+
+    entity.HasOne(x => x.Patient)
+        .WithMany()
+        .HasForeignKey(x => x.PatientId)
+        .OnDelete(DeleteBehavior.Cascade);
 });
     }
 }
